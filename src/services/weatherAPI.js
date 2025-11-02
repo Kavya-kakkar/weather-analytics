@@ -213,7 +213,7 @@ const getCountryFromQuery = (query) => {
 export const getCurrentWeather = async (lat, lon, cityName = 'Unknown City') => {
   console.log('Fetching weather for:', lat, lon, cityName);
   
-  if (!API_KEY || API_KEY === 'demo_key') {
+  if (!API_KEY || API_KEY === 'REACT_APP_WEATHER_API_KEY') {
     await new Promise(resolve => setTimeout(resolve, 500));
     return generateRealisticWeather(lat, lon, cityName);
   }
@@ -230,7 +230,7 @@ export const getCurrentWeather = async (lat, lon, cityName = 'Unknown City') => 
 };
 
 export const getForecast = async (lat, lon, cityName = 'Unknown City') => {
-  if (!API_KEY || API_KEY === 'demo_key') {
+  if (!API_KEY || API_KEY === 'REACT_APP_WEATHER_API_KEY') {
     await new Promise(resolve => setTimeout(resolve, 500));
     return generateRealisticForecast(lat, lon, cityName);
   }
