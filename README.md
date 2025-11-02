@@ -22,6 +22,9 @@ A modern React-based weather application that provides real-time weather data, f
 # Clone the repository
 git clone https://github.com/Kavya-kakkar/weather-analytics.git
 
+#Live demo 
+https://geoclimate.netlify.app/
+
 # Install dependencies
 npm install
 
