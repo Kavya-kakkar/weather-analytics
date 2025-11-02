@@ -1,62 +1,89 @@
 import axios from 'axios';
 
-const API_KEY = process.env.REACT_APP_WEATHER_API_KEY || 'demo_key';
+const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
-const GEO_URL = 'http://api.openweathermap.org/geo/1.0';
+const GEO_URL = 'https://api.openweathermap.org/geo/1.0';
 
 const log = (...args) => {
   if(process.env.NODE_ENV === 'development') {
     console.log(...args);
   }
 };
+
 // Enhanced global search for cities, states, and countries
 export const searchCities = async (query) => {
-  console.log('Searching globally for:', query);
+  console.log('🔍 Searching globally for:', query);
 
-  try {
-    const response = await fetch(
-       `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=${REACT_APP_WEATHER_API_KEY}&units=metric`
-    );
-     if (response.ok) {
-      const data = await response.json();
-      log('API Search results:', data);
-      return data;
+  // FIRST: Try direct weather API call if we have a valid API key
+  if (API_KEY && API_KEY !== 'your_actual_openweathermap_key') {
+    try {
+      console.log('🚀 Attempting real weather API call...');
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(query)}&appid=${API_KEY}&units=metric`
+      );
+      
+      console.log('📡 Weather API Response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ REAL Weather data received:', data);
+        
+        // Return in the format your app expects
+        return [{
+          id: data.id,
+          name: data.name,
+          country: data.sys.country,
+          lat: data.coord.lat,
+          lon: data.coord.lon,
+          weather: data.weather[0],
+          main: data.main,
+          wind: data.wind,
+          visibility: data.visibility,
+          isRealData: true
+        }];
+      }
+    } catch (error) {
+      console.error('❌ Weather API error:', error);
     }
-  } catch (error) {
-    console.error('Weather API error:', error);
-  };
- 
-  if (!API_KEY || API_KEY === 'REACT_APP_WEATHER_API_KEY') {
-    // Use enhanced mock data for demo
-    return getEnhancedMockCities(query);
   }
 
-  try {
-    // First try direct city search
-    const cityResponse = await axios.get(
-      `${GEO_URL}/direct?q=${query}&limit=10&appid=${API_KEY}`
-    );
-    
-    // If no cities found, try state/country search
-    if (cityResponse.data.length === 0) {
-      return await searchStatesAndCountries(query);
+  // SECOND: Try geo API for city search
+  if (API_KEY && API_KEY !== 'your_actual_openweathermap_key') {
+    try {
+      console.log('🗺️ Attempting Geo API call...');
+      const cityResponse = await axios.get(
+        `${GEO_URL}/direct?q=${encodeURIComponent(query)}&limit=10&appid=${API_KEY}`
+      );
+      
+      // If cities found, return them
+      if (cityResponse.data.length > 0) {
+        console.log('✅ Geo API results:', cityResponse.data);
+        
+        return cityResponse.data.map(city => ({
+          id: `${city.name}-${city.country}-${city.lat}-${city.lon}`.replace(/[^a-zA-Z0-9-]/g, ''),
+          name: city.name,
+          country: city.country,
+          state: city.state,
+          lat: city.lat,
+          lon: city.lon,
+          isRealData: true
+        }));
+      }
+      
+      // If no cities found, try states/countries
+      const stateCountryResults = await searchStatesAndCountries(query);
+      if (stateCountryResults.length > 0) {
+        return stateCountryResults;
+      }
+      
+    } catch (error) {
+      console.error('❌ Geo API error:', error);
     }
-    
-    console.log('API Search results:', cityResponse.data);
-    
-    return cityResponse.data.map(city => ({
-      id: `${city.name}-${city.country}-${city.lat}-${city.lon}`.replace(/[^a-zA-Z0-9-]/g, ''),
-      name: city.name,
-      country: city.country,
-      state: city.state,
-      lat: city.lat,
-      lon: city.lon
-    }));
-  } catch (error) {
-    console.error('Error searching cities:', error);
-    // Fallback to enhanced mock data
-    return getEnhancedMockCities(query);
   }
+
+  // THIRD: Fallback to enhanced mock data
+  console.log('📊 Falling back to sample data');
+  return getEnhancedMockCities(query);
 };
 
 // Search for states and countries by returning their capital/major cities
@@ -111,7 +138,8 @@ const searchStatesAndCountries = async (query) => {
         state: matchedLocation.state,
         lat: matchedLocation.lat,
         lon: matchedLocation.lon,
-        isCapital: true
+        isCapital: true,
+        isRealData: false
       }];
     }
     
@@ -126,25 +154,27 @@ const searchStatesAndCountries = async (query) => {
 const getEnhancedMockCities = (query) => {
   const globalLocations = [
     // Indian States (Capitals)
-    { id: 'mumbai-maharashtra', name: 'Mumbai', country: 'IN', state: 'Maharashtra', lat: 19.0760, lon: 72.8777, isCapital: true },
-    { id: 'new-delhi-delhi', name: 'New Delhi', country: 'IN', state: 'Delhi', lat: 28.6139, lon: 77.2090, isCapital: true },
-    { id: 'bengaluru-karnataka', name: 'Bengaluru', country: 'IN', state: 'Karnataka', lat: 12.9716, lon: 77.5946, isCapital: true },
-    { id: 'chennai-tamilnadu', name: 'Chennai', country: 'IN', state: 'Tamil Nadu', lat: 13.0827, lon: 80.2707, isCapital: true },
-    { id: 'thiruvananthapuram-kerala', name: 'Thiruvananthapuram', country: 'IN', state: 'Kerala', lat: 8.5241, lon: 76.9366, isCapital: true },
+    { id: 'mumbai-maharashtra', name: 'Mumbai', country: 'IN', state: 'Maharashtra', lat: 19.0760, lon: 72.8777, isCapital: true, isRealData: false },
+    { id: 'new-delhi-delhi', name: 'New Delhi', country: 'IN', state: 'Delhi', lat: 28.6139, lon: 77.2090, isCapital: true, isRealData: false },
+    { id: 'bengaluru-karnataka', name: 'Bengaluru', country: 'IN', state: 'Karnataka', lat: 12.9716, lon: 77.5946, isCapital: true, isRealData: false },
+    { id: 'chennai-tamilnadu', name: 'Chennai', country: 'IN', state: 'Tamil Nadu', lat: 13.0827, lon: 80.2707, isCapital: true, isRealData: false },
+    { id: 'thiruvananthapuram-kerala', name: 'Thiruvananthapuram', country: 'IN', state: 'Kerala', lat: 8.5241, lon: 76.9366, isCapital: true, isRealData: false },
     
     // Country Capitals
-    { id: 'washington-usa', name: 'Washington DC', country: 'US', state: 'District of Columbia', lat: 38.9072, lon: -77.0369, isCapital: true },
-    { id: 'ottawa-canada', name: 'Ottawa', country: 'CA', state: 'Ontario', lat: 45.4215, lon: -75.6972, isCapital: true },
-    { id: 'london-uk', name: 'London', country: 'GB', state: 'England', lat: 51.5074, lon: -0.1278, isCapital: true },
-    { id: 'tokyo-japan', name: 'Tokyo', country: 'JP', state: 'Tokyo', lat: 35.6762, lon: 139.6503, isCapital: true },
-    { id: 'beijing-china', name: 'Beijing', country: 'CN', state: 'Beijing', lat: 39.9042, lon: 116.4074, isCapital: true },
+    { id: 'washington-usa', name: 'Washington DC', country: 'US', state: 'District of Columbia', lat: 38.9072, lon: -77.0369, isCapital: true, isRealData: false },
+    { id: 'ottawa-canada', name: 'Ottawa', country: 'CA', state: 'Ontario', lat: 45.4215, lon: -75.6972, isCapital: true, isRealData: false },
+    { id: 'london-uk', name: 'London', country: 'GB', state: 'England', lat: 51.5074, lon: -0.1278, isCapital: true, isRealData: false },
+    { id: 'tokyo-japan', name: 'Tokyo', country: 'JP', state: 'Tokyo', lat: 35.6762, lon: 139.6503, isCapital: true, isRealData: false },
+    { id: 'beijing-china', name: 'Beijing', country: 'CN', state: 'Beijing', lat: 39.9042, lon: 116.4074, isCapital: true, isRealData: false },
     
     // Major Cities
-    { id: '5128581', name: 'New York', country: 'US', state: 'NY', lat: 40.7128, lon: -74.0060 },
-    { id: '5368361', name: 'Los Angeles', country: 'US', state: 'CA', lat: 34.0522, lon: -118.2437 },
-    { id: '1850147', name: 'Tokyo', country: 'JP', state: 'Tokyo', lat: 35.6762, lon: 139.6503 },
-    { id: '2643743', name: 'London', country: 'GB', state: 'England', lat: 51.5074, lon: -0.1278 },
-    { id: '2988507', name: 'Paris', country: 'FR', state: 'Paris', lat: 48.8566, lon: 2.3522 },
+    { id: '5128581', name: 'New York', country: 'US', state: 'NY', lat: 40.7128, lon: -74.0060, isRealData: false },
+    { id: '5368361', name: 'Los Angeles', country: 'US', state: 'CA', lat: 34.0522, lon: -118.2437, isRealData: false },
+    { id: '1850147', name: 'Tokyo', country: 'JP', state: 'Tokyo', lat: 35.6762, lon: 139.6503, isRealData: false },
+    { id: '2643743', name: 'London', country: 'GB', state: 'England', lat: 51.5074, lon: -0.1278, isRealData: false },
+    { id: '2988507', name: 'Paris', country: 'FR', state: 'Paris', lat: 48.8566, lon: 2.3522, isRealData: false },
+    { id: '1273294', name: 'Delhi', country: 'IN', state: 'Delhi', lat: 28.6139, lon: 77.2090, isRealData: false },
+    { id: '1275339', name: 'Mumbai', country: 'IN', state: 'Maharashtra', lat: 19.0760, lon: 72.8777, isRealData: false },
   ];
 
   if (!query || query.length < 2) {
@@ -162,7 +192,7 @@ const getEnhancedMockCities = (query) => {
     (location.isCapital && getCountryFromQuery(searchTerm) === location.country.toLowerCase())
   );
 
-  console.log('Enhanced search results:', results);
+  console.log('📊 Sample data results:', results);
   return results;
 };
 
@@ -209,90 +239,101 @@ const getCountryFromQuery = (query) => {
   return countryMap[query];
 };
 
-// ... keep the existing getCurrentWeather, getForecast, and other functions the same
+// Weather data functions
 export const getCurrentWeather = async (lat, lon, cityName = 'Unknown City') => {
-  console.log('Fetching weather for:', lat, lon, cityName);
+  console.log('🌤️ Fetching weather for:', lat, lon, cityName);
   
-  if (!API_KEY || API_KEY === 'REACT_APP_WEATHER_API_KEY') {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return generateRealisticWeather(lat, lon, cityName);
+  if (API_KEY && API_KEY !== 'your_actual_openweathermap_key') {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+      );
+      console.log('✅ Real weather data received');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Weather fetch error:', error);
+    }
   }
 
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching current weather:', error);
-    return generateRealisticWeather(lat, lon, cityName);
-  }
+  // Fallback to sample weather data
+  console.log('📊 Using sample weather data');
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return generateRealisticWeather(lat, lon, cityName);
 };
 
 export const getForecast = async (lat, lon, cityName = 'Unknown City') => {
-  if (!API_KEY || API_KEY === 'REACT_APP_WEATHER_API_KEY') {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return generateRealisticForecast(lat, lon, cityName);
+  console.log('📅 Fetching forecast for:', cityName);
+  
+  if (API_KEY && API_KEY !== 'your_actual_openweathermap_key') {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+      );
+      console.log('✅ Real forecast data received');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Forecast fetch error:', error);
+    }
   }
 
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/onecall?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&exclude=minutely,alerts`
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching forecast:', error);
-    return generateRealisticForecast(lat, lon, cityName);
-  }
+  // Fallback to sample forecast data
+  console.log('📊 Using sample forecast data');
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return generateRealisticForecast(lat, lon, cityName);
 };
 
-const generateRealisticForecast = (lat, lon, cityName) => {
-  const baseTemp = lat > 0 ? 15 : 20;
-  const now = Math.floor(Date.now() / 1000);
-
+const generateRealisticWeather = (lat, lon, cityName) => {
+  const baseTemp = Math.abs(lat) > 40 ? 10 : Math.abs(lat) > 20 ? 20 : 30;
+  const conditions = ['Clear', 'Clouds', 'Rain', 'Snow'];
+  const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
+  
   return {
-    current: {
+    name: cityName,
+    main: {
       temp: baseTemp + (Math.random() * 10 - 5),
       feels_like: baseTemp + (Math.random() * 8 - 4),
       humidity: 50 + Math.random() * 30,
-      pressure: 1010 + Math.random() * 20,
-      wind_speed: 2 + Math.random() * 10,
-      wind_deg: Math.random() * 360,
-      weather: [{ main: 'Clear', description: 'clear sky' }],
-      visibility: 10000
+      pressure: 1010 + Math.random() * 20
     },
-    hourly: Array.from({ length: 48 }, (_, i) => ({
-      dt: now + i * 3600,
-      temp: baseTemp + Math.sin(i * 0.1) * 8 + (Math.random() * 4 - 2),
-      feels_like: baseTemp + Math.sin(i * 0.1) * 8 + (Math.random() * 3 - 1.5),
-      humidity: 40 + Math.random() * 40,
-      pressure: 1005 + Math.random() * 20,
-      pop: Math.random() * 0.8,
-      wind_speed: 1 + Math.random() * 12,
-      wind_deg: Math.random() * 360,
-      weather: [{
-        main: i < 12 ? 'Clear' : i < 24 ? 'Clouds' : 'Rain',
-        description: i < 12 ? 'clear sky' : i < 24 ? 'cloudy' : 'light rain'
-      }]
-    })),
-    daily: Array.from({ length: 7 }, (_, i) => ({
-      dt: now + i * 86400,
-      temp: {
-        max: baseTemp + 8 + Math.sin(i) * 6,
-        min: baseTemp - 5 + Math.sin(i) * 4
-      },
-      humidity: 45 + Math.random() * 25,
-      wind_speed: 3 + Math.random() * 8,
-      wind_deg: Math.random() * 360,
-      pop: Math.random() * 0.6,
-      weather: [{
-        main: i % 4 === 0 ? 'Clear' : i % 4 === 1 ? 'Clouds' : i % 4 === 2 ? 'Rain' : 'Snow',
-        description: i % 4 === 0 ? 'clear sky' : i % 4 === 1 ? 'cloudy' : i % 4 === 2 ? 'rain' : 'snow'
-      }]
-    }))
+    weather: [{ 
+      main: randomCondition, 
+      description: `${randomCondition.toLowerCase()} sky`,
+      icon: randomCondition === 'Clear' ? '01d' : randomCondition === 'Clouds' ? '04d' : randomCondition === 'Rain' ? '10d' : '13d'
+    }],
+    wind: {
+      speed: 2 + Math.random() * 10,
+      deg: Math.random() * 360
+    },
+    visibility: 8000 + Math.random() * 8000
   };
 };
 
+const generateRealisticForecast = (lat, lon, cityName) => {
+  const baseTemp = Math.abs(lat) > 40 ? 10 : Math.abs(lat) > 20 ? 20 : 30;
+  const now = Math.floor(Date.now() / 1000);
+
+  return {
+    list: Array.from({ length: 8 }, (_, i) => ({
+      dt: now + i * 3 * 3600,
+      main: {
+        temp: baseTemp + Math.sin(i * 0.5) * 8 + (Math.random() * 4 - 2),
+        feels_like: baseTemp + Math.sin(i * 0.5) * 8 + (Math.random() * 3 - 1.5),
+        humidity: 40 + Math.random() * 40,
+        pressure: 1005 + Math.random() * 20
+      },
+      weather: [{
+        main: i < 2 ? 'Clear' : i < 4 ? 'Clouds' : 'Rain',
+        description: i < 2 ? 'clear sky' : i < 4 ? 'cloudy' : 'light rain',
+        icon: i < 2 ? '01d' : i < 4 ? '04d' : '10d'
+      }],
+      wind: {
+        speed: 1 + Math.random() * 12,
+        deg: Math.random() * 360
+      },
+      pop: Math.random() * 0.8
+    }))
+  };
+};
 
 export const getHistoricalData = async (lat, lon) => {
   await new Promise(resolve => setTimeout(resolve, 300));
