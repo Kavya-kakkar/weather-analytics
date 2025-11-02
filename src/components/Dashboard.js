@@ -13,7 +13,7 @@ const Dashboard = ({ onCitySelect }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Replace with your actual OpenWeatherMap API key
+  
   const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
   const API_URL = 'https://api.openweathermap.org/data/2.5/weather';
 
@@ -28,7 +28,7 @@ const Dashboard = ({ onCitySelect }) => {
       return;
     }
 
-    // Only search when user stops typing for 500ms
+    
     clearTimeout(handleSearch.timeout);
     handleSearch.timeout = setTimeout(() => {
       performSearch(query);
@@ -51,7 +51,7 @@ const Dashboard = ({ onCitySelect }) => {
       
       const data = await response.json();
       
-      // Transform API data to our format
+      
       const cityData = {
         id: data.id,
         name: data.name,
@@ -62,7 +62,7 @@ const Dashboard = ({ onCitySelect }) => {
         humidity: data.main.humidity,
         windSpeed: data.wind.speed,
         pressure: data.main.pressure,
-        visibility: data.visibility / 1000, // Convert to km
+        visibility: data.visibility / 1000, 
         icon: data.weather[0].icon
       };
       
@@ -90,7 +90,7 @@ const Dashboard = ({ onCitySelect }) => {
   return (
     <div className="dashboard">
       <div className="weather-analytics">
-        {/* Search Section */}
+      
         <div className="search-section">
           <input 
             type="text" 
@@ -103,7 +103,7 @@ const Dashboard = ({ onCitySelect }) => {
           {error && <div className="error-message">{error}</div>}
         </div>
         
-        {/* Show search result */}
+        
         {isSearching && searchResult && !loading && (
           <div className="search-result-section">
             <h2>Weather in {searchResult.name}, {searchResult.country}</h2>

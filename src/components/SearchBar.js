@@ -1,7 +1,7 @@
 // components/SearchBar.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addFavorite, removeFavorite } from '../store/weatherSlice'; // Fixed typo in import
+import { addFavorite, removeFavorite } from '../store/weatherslice'; 
 import { searchCities } from '../services/weatherAPI';
 import './SearchBar.css';
 
