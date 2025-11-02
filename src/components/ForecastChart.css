@@ -1,0 +1,104 @@
+/* src/components/ForecastChart.css */
+.forecast-chart {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chart-controls h3 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.chart-type-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chart-btn {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.chart-btn:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.chart-btn.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.chart-container {
+  width: 100%;
+  height: 350px;
+}
+
+.chart-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .forecast-chart {
+    padding: 1rem;
+  }
+  
+  .chart-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .chart-type-selector {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .chart-btn {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+  }
+  
+  .chart-container {
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-type-selector {
+    flex-direction: column;
+  }
+  
+  .chart-btn {
+    min-width: 100%;
+  }
+}
