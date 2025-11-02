@@ -15,7 +15,7 @@ export const searchCities = async (query) => {
 
   try {
     const response = await fetch(
-       `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=${demo_key}&units=metric`
+       `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=${REACT_APP_WEATHER_API_KEY}&units=metric`
     );
      if (response.ok) {
       const data = await response.json();
