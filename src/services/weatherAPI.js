@@ -26,7 +26,7 @@ export const searchCities = async (query) => {
     console.error('Weather API error:', error);
   };
  
-  if (!API_KEY || API_KEY === 'demo_key') {
+  if (!API_KEY || API_KEY === 'REACT_APP_WEATHER_API_KEY') {
     // Use enhanced mock data for demo
     return getEnhancedMockCities(query);
   }

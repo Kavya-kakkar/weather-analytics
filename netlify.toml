@@ -2,15 +2,6 @@
   publish = "build"
   command = "npm run build"
 
-[build.environment]
-REACT_APP_WEATHER_API_KEY = "your_actual_openweathermap_key"
-REACT_APP_FIREBASE_API_KEY = "your_firebase_api_key"
-REACT_APP_FIREBASE_AUTH_DOMAIN = "your-project.firebaseapp.com"
-REACT_APP_FIREBASE_PROJECT_ID = "your-project-id"
-REACT_APP_FIREBASE_STORAGE_BUCKET = "your-project.appspot.com"
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID = "your-sender-id"
-REACT_APP_FIREBASE_APP_ID = "your-app-id"
-
 [[redirects]]
   from = "/*"
   to = "/index.html"
